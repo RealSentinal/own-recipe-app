@@ -1,6 +1,6 @@
 "use client"
 //backend
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 
@@ -40,10 +40,20 @@ export default function Home() {
     router.push(`/RecipeInfo/${id}`)
   }
 
+  //get random recipes
+  const [randomRecipes, setRandomRecipes] = useState<any[]>([])
+  const fetchRandomRecipes = async () => {
+    const response = await axios.get(`/api/RandomRecipe`)
+    setRandomRecipes(response.data.recipes)
+  }
+  useEffect(() => {
+    fetchRandomRecipes()
+  }, [])
+
   return (
-    <main className="w-screen h-screen flex items-start justify-center bg-zinc-900 p-6 relative">
+    <main className="w-screen h-screen flex flex-wrap items-start justify-center bg-zinc-900 px-4 pt-4 relative">
       {/* search bar */}
-      <div className="w-full flex flex-col items-center">
+      <div className="w-screen flex flex-col items-center">
         <div className="w-full flex items-center justify-center relative">
           <Search className="text-neutral-400 absolute mr-[57%]" />
           <Input onFocus={toggleSearch} onBlur={toggleSearch} onChange={(e) => search(e.target.value)} className="w-[60%] h-12 pl-14 bg-zinc-800 border-none caret-white text-white shadow-2xl" placeholder="Search Recipes" />
@@ -64,7 +74,22 @@ export default function Home() {
         </div>
       </div>
       {/* main content */}
-      <div></div>
+      <div className="w-full h-[94%] overflow-y-hidden">
+        {randomRecipes === undefined || randomRecipes.length === 0 ?
+          <div className="w-full h-full flex items-center justify-center"><h1 className="text-white text-2xl">Loading...</h1></div>
+          :
+          <div>
+            {randomRecipes.map((recipe: any) => (
+              <div key={recipe.id} className="w-full h-[40%] flex flex-row m-2 bg-zinc-700 rounded-2xl cursor-pointer">
+                <img src={recipe.image} alt={recipe.id} className="rounded-l-2xl" />
+                <h1 className="text-white text-2xl ml-2 mt-2">{recipe.title}</h1>
+                <h1 className="text-white text-2xl ml-2">ready in {recipe.readyInMinutes} minutes</h1>
+                <h1>summary: {recipe.summary}</h1>
+              </div>
+            ))}
+          </div>
+        }
+      </div>
     </main>
   );
 }
